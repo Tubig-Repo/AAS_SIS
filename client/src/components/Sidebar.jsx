@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import jwt_decode from "jwt-decode";
+import { Link } from "react-router";
+import { jwtDecode } from "jwt-decode";
 
 export default function Sidebar() {
   const token = localStorage.getItem("token");
@@ -7,7 +7,7 @@ export default function Sidebar() {
 
   if (token) {
     try {
-      const decoded = jwt_decode(token);
+      const decoded = jwtDecode(token);
       role = decoded.role;
     } catch (err) {
       console.error("Invalid token");
@@ -59,36 +59,6 @@ export default function Sidebar() {
           </Link>
         </li>
       </ul>
-               <ul
-            className="dropdown-menu text-small shadow"
-            aria-labelledby="dropdownUser1"
-          >
-            <li>
-              <a className="dropdown-item" href="#">
-                New project...
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                Settings
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                Profile
-              </a>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                Sign out
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
     </div>
   );
 }
