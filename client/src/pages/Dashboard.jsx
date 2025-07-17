@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
+
 export default function Dashboard() {
   const [data, setData] = useState(null);
 
@@ -21,14 +21,10 @@ export default function Dashboard() {
   }, []);
   return (
     <div className="d-flex">
-      <Sidebar />
-      {/* Main Content */}
-      <div className="p-4">
-        <h1>Main content area</h1>
-        <p>
-          This is where your main content goes alongside the sidebar navigation.
-        </p>
+      <div className="p-4 flex-grow-1">
+        <h3>This is the main content!</h3>
       </div>
     </div>
-  );
+  );  
 }
+
