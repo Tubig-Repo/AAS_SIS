@@ -4,11 +4,11 @@ const connection = mysql2.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "users",
+  database: "student_db",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  port: 3307,
+  port: 3306,
 });
 
 module.exports = connection.promise();
