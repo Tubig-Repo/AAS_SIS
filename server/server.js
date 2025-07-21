@@ -14,17 +14,19 @@ app.use("/api/auth", authRoutes);
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 // Student Routes
-app.use('/api/students', studentRoutes )
+app.use("/api/students", studentRoutes);
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));
 
 // ✅ Admin Seeder (Run only once)
 // async function seedAdminAccount() {
 //   const username = "admin";
-//   const password = "adminpassword";  // Change this before production
+//   const password = "adminpassword"; // Change this before production
 //   const role = "admin";
 
 //   try {
-//     const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
+//     const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [
+//       username,
+//     ]);
 //     if (rows.length > 0) {
 //       console.log("Admin account already exists.");
 //       return;
