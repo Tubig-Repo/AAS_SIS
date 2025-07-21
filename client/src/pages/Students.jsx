@@ -1,46 +1,47 @@
 import { useState, useEffect } from "react";
 import AddStudentModal from "../components/AddStudentModal";
-const mockData = [
-  {
-    name: "Thomas Hardy",
-    email: "thomashardy@mail.com",
-    address: "89 Chiaroscuro Rd, Portland, USA",
-    phone: "(171) 555-2222",
-  },
-  {
-    name: "Dominique Perrier",
-    email: "dominiqueperrier@mail.com",
-    address: "Obere Str. 57, Berlin, Germany",
-    phone: "(313) 555-5735",
-  },
-  {
-    name: "Maria Anders",
-    email: "mariaanders@mail.com",
-    address: "25, rue Lauriston, Paris, France",
-    phone: "(503) 555-9931",
-  },
-  {
-    name: "Fran Wilson",
-    email: "franwilson@mail.com",
-    address: "C/ Araquil, 67, Madrid, Spain",
-    phone: "(204) 619-5731",
-  },
-  {
-    name: "Martin Blank",
-    email: "martinblank@mail.com",
-    address: "Via Monte Bianco 34, Turin, Italy",
-    phone: "(480) 631-2097",
-  },
-];
 
 export default function Student() {
-  const [employees, setEmployees] = useState(mockData);
   const [selected, setSelected] = useState([]);
   const [students, setStudents] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const handleSaveStudent = (studentData) => {
-    console.log('Saving student:', studentData);
-    // Send to backend with fetch/axios here
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterLevel, setFilterLevel] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
+  // Save Student Data Request to Server
+  const handleSaveStudent = async (studentData) => {
+    try {
+      const formData = new FormData();
+
+      // Append all fields manually
+      Object.entries(studentData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      const res = await fetch("http://localhost:5000/api/students", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (res.ok || res.status === 200 || res.status === 201) {
+        alert("Student saved successfully!");
+        getStudentData();
+        return true; // This will close the modal
+      } else {
+        alert(result.message || "Failed to save student");
+        return false;
+      }
+    } catch (err) {
+      console.error("Failed to POST student data:", err);
+      alert("Something went wrong while saving."); // optional
+      return false;
+    }
   };
 
   const toggleSelect = (index) => {
@@ -50,13 +51,15 @@ export default function Student() {
       setSelected([...selected, index]);
     }
   };
+  // Delete an item from the data
+  const handleDelete = () => {};
 
-  const handleDelete = () => {
-    const remaining = employees.filter((_, i) => !selected.includes(i));
-    setEmployees(remaining);
-    setSelected([]);
+  const handleDate = (date) => {
+    const newDate = new Date(date);
+
+    return newDate.toLocaleDateString("en-CA");
   };
-
+  // Fetch Student Data from the database
   const getStudentData = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/students", {
@@ -80,6 +83,63 @@ export default function Student() {
 
   return (
     <div className="mt-5">
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            {/* Search Input */}
+            <div className="col-md-6">
+              <label htmlFor="searchInput" className="form-label fw-bold">
+                Search
+              </label>
+              <input
+                type="text"
+                id="searchInput"
+                className="form-control"
+                placeholder="Search by name or ID"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Filter by Level */}
+            <div className="col-md-3">
+              <label htmlFor="levelFilter" className="form-label fw-bold">
+                Filter by Level
+              </label>
+              <select
+                id="levelFilter"
+                className="form-select"
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+              >
+                <option value="">All Levels</option>
+                <option value="Kindergarten">Kindergarten</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                {/* Add more levels as needed */}
+              </select>
+            </div>
+
+            {/* Filter by Status */}
+            <div className="col-md-3">
+              <label htmlFor="statusFilter" className="form-label fw-bold">
+                Filter by Status
+              </label>
+              <select
+                id="statusFilter"
+                className="form-select"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="card shadow">
         <div className="card-header d-flex justify-content-between align-items-center bg-primary text-white">
           <h5 className="mb-0">
@@ -119,10 +179,11 @@ export default function Student() {
                 <th>Level</th>
                 <th>Section</th>
                 <th>Guardian</th>
-                <th>Contact</th>
+                <th>Guardian Contact</th>
+                <th>Guardian Email</th>
                 <th>Address</th>
                 <th>Status</th>
-                <th>Enrolled</th>
+                <th>Date Enrolled</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -132,7 +193,7 @@ export default function Student() {
                   <td>
                     <input
                       type="checkbox"
-                       style={{width: "100%", height: "25px"}} 
+                      style={{ width: "100%", height: "25px" }}
                       checked={selected.includes(i)}
                       onChange={() => toggleSelect(i)}
                     />
@@ -141,12 +202,13 @@ export default function Student() {
                   <td>{`${s.first_name} ${s.middle_name || ""} ${
                     s.last_name
                   }`}</td>
-                  <td>{s.birthdate}</td>
+                  <td>{handleDate(s.birthdate)}</td>
                   <td>{s.gender}</td>
                   <td>{s.level}</td>
                   <td>{s.section}</td>
                   <td>{s.guardian_name}</td>
                   <td>{s.guardian_contact_number}</td>
+                  <td>{s.guardian_email}</td>
                   <td>{s.address}</td>
                   <td>
                     <span
@@ -157,9 +219,9 @@ export default function Student() {
                       {s.status}
                     </span>
                   </td>
-                  <td>{s.date_enrolled}</td>
+                  <td>{handleDate(s.date_enrolled)}</td>
                   <td>
-                    <button className="btn btn-sm text-warning me-2">
+                    <button className="btn btn-sm text-warning">
                       <i className="bi bi-pencil-square"></i>
                     </button>
                     <button className="btn btn-sm text-danger">

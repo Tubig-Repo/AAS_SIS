@@ -56,7 +56,7 @@ export default function Sidebar() {
               "nav-link " + (isActive ? "active" : "link-dark")
             }
           >
-            <i class="bi bi-piggy-bank me-2"></i>
+            <i className="bi bi-piggy-bank me-2"></i>
             Fees and Management
           </NavLink>
         </li>
@@ -67,7 +67,7 @@ export default function Sidebar() {
               "nav-link " + (isActive ? "active" : "link-dark")
             }
           >
-            <i class="bi bi-receipt me-2"></i>
+            <i className="bi bi-receipt me-2"></i>
             Billing and Statements
           </NavLink>
         </li>
@@ -78,7 +78,7 @@ export default function Sidebar() {
               "nav-link " + (isActive ? "active" : "link-dark")
             }
           >
-            <i class="bi bi-cash me-2"></i>
+            <i className="bi bi-cash me-2"></i>
             Payments
           </NavLink>
         </li>
@@ -89,7 +89,7 @@ export default function Sidebar() {
               "nav-link " + (isActive ? "active" : "link-dark")
             }
           >
-            <i class="bi bi-clipboard-check me-2"></i>
+            <i className="bi bi-clipboard-check me-2"></i>
             Reports
           </NavLink>
         </li>

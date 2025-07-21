@@ -31,51 +31,55 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Dashboard />
+            element: <Dashboard />,
           },
           {
             path: "students",
             element: (
-            <ProtectedRoute requiredRole={["admin", "registrar"]}>
+              <ProtectedRoute requiredRole={["admin", "registrar"]}>
                 <Students />
-            </ProtectedRoute>
-            )
-          }, {
+              </ProtectedRoute>
+            ),
+          },
+          {
             path: "fees",
             element: (
-            <ProtectedRoute requiredRole={["admin"]}>
+              <ProtectedRoute requiredRole={["admin"]}>
                 <FeesManagement />
-            </ProtectedRoute>
-            )
-          }, {
+              </ProtectedRoute>
+            ),
+          },
+          {
             path: "bill",
             element: (
               <ProtectedRoute requiredRole={["admin"]}>
                 <BillandStatement />
               </ProtectedRoute>
-            )
-          }, {
+            ),
+          },
+          {
             path: "payments",
             element: (
               <ProtectedRoute requiredRole={["admin"]}>
                 <Payments />
               </ProtectedRoute>
-            )
-          }, 
+            ),
+          },
           {
             path: "reports",
             element: (
               <ProtectedRoute requiredRole={["admin"]}>
                 <Reports />
               </ProtectedRoute>
-            )
-          }
-        ]
+            ),
+          },
+        ],
       },
-
     ],
   },
 ]);
 createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>
 );
