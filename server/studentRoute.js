@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const db = require("./db");
 const multer = require("multer");
+const path = require("path");
+
 // Get all student's data
 router.get("/", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM students");
     res.json(rows);
-    console.log(rows);
   } catch (err) {
     console.error("DB Error:", err);
     res.status(500).json({ message: "Database Error" });
@@ -18,7 +19,7 @@ router.get("/", async (req, res) => {
 
 // Create A new Student
 const storage = multer.diskStorage({
-  destination: "/uploads",
+  destination: "./uploads",
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
   },
@@ -27,8 +28,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/", upload.single("photo"), async (req, res) => {
+  console.log("POST uploaded file:", req.file);
+  console.log("POST Body Request:", req.body);
+
   const {
     student_id,
+    LRN,
     first_name,
     middle_name,
     last_name,
@@ -46,16 +51,36 @@ router.post("/", upload.single("photo"), async (req, res) => {
 
   const photo = req.file ? req.file.filename : null;
 
+  // Add this detailed logging
+  console.log("Extracted values:", {
+    student_id,
+    LRN,
+    first_name,
+    middle_name,
+    last_name,
+    birthdate,
+    gender,
+    level,
+    section,
+    guardian_name,
+    guardian_contact_number,
+    guardian_email,
+    address,
+    date_enrolled,
+    status,
+    photo,
+  });
+
   try {
-    // Insert student into the database
     const sql = `
      INSERT INTO students 
-        (student_id, first_name, middle_name, last_name, birthdate, gender, level, section,
+        (student_id, LRN, first_name, middle_name, last_name, birthdate, gender, level, section,
          guardian_name, guardian_contact_number, guardian_email, address, date_enrolled, status, photo)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    await db.query(sql, [
+    const values = [
       student_id,
+      LRN,
       first_name,
       middle_name,
       last_name,
@@ -70,15 +95,93 @@ router.post("/", upload.single("photo"), async (req, res) => {
       date_enrolled,
       status,
       photo,
-    ]);
+    ];
+
+    console.log("SQL Query:", sql);
+    console.log("Values being inserted:", values);
+
+    await db.query(sql, values);
 
     res.status(201).json({ message: "Student added successfully" });
   } catch (err) {
-    console.error("DB Error: ", err);
-    res.status(500).json({ message: "Database Error" });
+    console.error("DB Error Details: ", err);
+    console.error("Error message:", err.message);
+    console.error("Error code:", err.code);
+    res.status(500).json({
+      message: "Database Error",
+      error: err.message, // Include error details for debugging
+    });
   }
 });
 // Update a student by ID
+router.put("/:id", upload.single("photo"), async (req, res) => {
+  const studentId = req.params.id;
+  console.log(req.body);
+  const {
+    LRN,
+    first_name,
+    middle_name,
+    last_name,
+    birthdate,
+    gender,
+    level,
+    section,
+    guardian_name,
+    guardian_contact_number,
+    guardian_email,
+    address,
+    date_enrolled,
+    status,
+  } = req.body;
+
+  const photo = req.file ? req.file.filename : req.body.photo; // Keep old photo if not replaced
+  try {
+    const sql = `
+      UPDATE students SET
+        LRN = ?,
+        first_name = ?,
+        middle_name = ?,
+        last_name = ?,
+        birthdate = ?,
+        gender = ?,
+        level = ?,
+        section = ?,
+        guardian_name = ?,
+        guardian_contact_number = ?,
+        guardian_email = ?,
+        address = ?,
+        date_enrolled = ?,
+        status = ?,
+        photo = ?
+      WHERE student_id = ?`;
+
+    const values = [
+      LRN,
+      first_name,
+      middle_name,
+      last_name,
+      birthdate,
+      gender,
+      level,
+      section,
+      guardian_name,
+      guardian_contact_number,
+      guardian_email,
+      address,
+      date_enrolled,
+      status,
+      photo,
+      studentId,
+    ];
+
+    await db.query(sql, values);
+
+    res.status(200).json({ message: "Student updated successfully" });
+  } catch (err) {
+    console.error("Update Error:", err);
+    res.status(500).json({ message: "Database Error during update" });
+  }
+});
 
 // Deleting a student by ID
 

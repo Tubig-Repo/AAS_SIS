@@ -1,0 +1,348 @@
+  // const handleUpdateStudent = async (formData) => {
+  //   console.log("🔄 Starting handleUpdateStudent...");
+
+  //   try {
+  //     // Debug: Check if formData is valid
+  //     if (!(formData instanceof FormData)) {
+  //       console.error("❌ Invalid formData type:", typeof formData);
+  //       throw new Error("Invalid form data provided");
+  //     }
+
+  //     // Debug: Log all formData entries
+  //     console.log("📋 FormData contents:");
+  //     for (let [key, value] of formData.entries()) {
+  //       console.log(`  ${key}:`, value);
+  //     }
+
+  //     const studentId = formData.get("student_id");
+  //     console.log("🆔 Student ID extracted:", studentId);
+
+  //     if (!studentId) {
+  //       console.error("❌ Missing student_id in formData");
+  //       // Try alternative ways to get student ID
+  //       const altStudentId = formData.get("id") || formData.get("studentId");
+  //       if (altStudentId) {
+  //         console.log("✅ Found alternative student ID:", altStudentId);
+  //         formData.set("student_id", altStudentId);
+  //       } else {
+  //         throw new Error(
+  //           "Missing student_id in formData. Please ensure the student ID is included."
+  //         );
+  //       }
+  //     }
+
+  //     const token = localStorage.getItem("token");
+  //     console.log("🔑 Token exists:", !!token);
+
+  //     if (!token) {
+  //       throw new Error("No authentication token found. Please log in.");
+  //     }
+
+  //     const finalStudentId = formData.get("student_id");
+  //     const updateUrl = `http://localhost:5000/api/students/${finalStudentId}`;
+  //     console.log("🌐 Making PUT request to:", updateUrl);
+
+  //     // Create a backup of formData for debugging
+  //     const formDataEntries = {};
+  //     for (let [key, value] of formData.entries()) {
+  //       formDataEntries[key] = value;
+  //     }
+  //     console.log("📤 Sending data:", formDataEntries);
+
+  //     const res = await fetch(updateUrl, {
+  //       method: "PUT",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         // Don't set Content-Type for FormData - browser will set it with boundary
+  //       },
+  //       body: formData,
+  //     });
+
+  //     console.log("📥 Response status:", res.status);
+  //     console.log("📥 Response ok:", res.ok);
+  //     console.log(
+  //       "📥 Response headers:",
+  //       Object.fromEntries(res.headers.entries())
+  //     );
+
+  //     if (!res.ok) {
+  //       console.error("❌ Request failed with status:", res.status);
+
+  //       // Try to get error details
+  //       let errorData = {};
+  //       const contentType = res.headers.get("content-type");
+
+  //       try {
+  //         if (contentType && contentType.includes("application/json")) {
+  //           errorData = await res.json();
+  //           console.log("📋 Error response data:", errorData);
+  //         } else {
+  //           const textResponse = await res.text();
+  //           console.log("📋 Non-JSON error response:", textResponse);
+  //           errorData = { message: textResponse || `HTTP ${res.status} error` };
+  //         }
+  //       } catch (parseError) {
+  //         console.error("❌ Failed to parse error response:", parseError);
+  //         errorData = { message: `HTTP ${res.status} error` };
+  //       }
+
+  //       // Provide specific error messages based on status
+  //       let errorMessage =
+  //         errorData.message || `HTTP error! status: ${res.status}`;
+
+  //       switch (res.status) {
+  //         case 400:
+  //           errorMessage = `Bad Request: ${
+  //             errorData.message || "Invalid data provided"
+  //           }`;
+  //           break;
+  //         case 401:
+  //           errorMessage = "Unauthorized: Please log in again";
+  //           break;
+  //         case 403:
+  //           errorMessage =
+  //             "Forbidden: You don't have permission to update this student";
+  //           break;
+  //         case 404:
+  //           errorMessage = `Student not found (ID: ${finalStudentId})`;
+  //           break;
+  //         case 422:
+  //           errorMessage = `Validation Error: ${
+  //             errorData.message || "Invalid data"
+  //           }`;
+  //           break;
+  //         case 500:
+  //           errorMessage = "Server Error: Please try again later";
+  //           break;
+  //       }
+
+  //       throw new Error(errorMessage);
+  //     }
+
+  //     // Parse successful response
+  //     let result = {};
+  //     try {
+  //       const contentType = res.headers.get("content-type");
+  //       if (contentType && contentType.includes("application/json")) {
+  //         result = await res.json();
+  //         console.log("✅ Success response:", result);
+  //       } else {
+  //         console.log("⚠️ Non-JSON success response");
+  //         result = { message: "Update successful" };
+  //       }
+  //     } catch (parseError) {
+  //       console.error("⚠️ Failed to parse success response:", parseError);
+  //       result = { message: "Update successful" };
+  //     }
+
+  //     console.log("✅ Student updated successfully!");
+  //     alert("Student updated successfully!");
+
+  //     // Refresh the data
+  //     await getStudentData();
+  //     return true;
+  //   } catch (err) {
+  //     console.error("❌ Error in handleUpdateStudent:", err);
+  //     console.error("📋 Error stack:", err.stack);
+
+  //     // Provide user-friendly error messages
+  //     let userMessage = err.message;
+
+  //     if (err.name === "TypeError" && err.message.includes("fetch")) {
+  //       userMessage =
+  //         "Network error: Could not connect to server. Please check your connection.";
+  //     } else if (err.message.includes("JSON")) {
+  //       userMessage = "Server response error. Please try again.";
+  //     }
+
+  //     alert(`Failed to update student: ${userMessage}`);
+  //     return false;
+  //   }
+  // };
+
+
+Student Route 
+
+
+// router.put("/:id", upload.single("photo"), async (req, res) => {
+//   console.log("🔄 PUT /students/:id route hit");
+//   console.log("📋 Request params:", req.params);
+//   console.log("📋 Request body:", req.body);
+//   console.log("📋 Request file:", req.file);
+//   console.log("📋 Content-Type:", req.headers["content-type"]);
+
+//   const studentId = req.params.id;
+//   console.log("🆔 Student ID from params:", studentId);
+
+//   // Validate student ID
+//   if (!studentId || studentId === "undefined" || studentId === "null") {
+//     console.error("❌ Invalid student ID:", studentId);
+//     return res.status(400).json({
+//       message: "Invalid student ID provided",
+//       receivedId: studentId,
+//     });
+//   }
+
+//   try {
+//     // Check if student exists first
+//     const checkSql = "SELECT student_id FROM students WHERE student_id = ?";
+//     const [existingStudent] = await db.query(checkSql, [studentId]);
+
+//     if (!existingStudent || existingStudent.length === 0) {
+//       console.error("❌ Student not found with ID:", studentId);
+//       return res.status(404).json({
+//         message: `Student not found with ID: ${studentId}`,
+//       });
+//     }
+
+//     console.log("✅ Student exists, proceeding with update");
+
+//     const {
+//       first_name,
+//       middle_name,
+//       last_name,
+//       birthdate,
+//       gender,
+//       level,
+//       section,
+//       guardian_name,
+//       guardian_contact_number,
+//       guardian_email,
+//       address,
+//       date_enrolled,
+//       status,
+//     } = req.body;
+
+//     // Log extracted data for debugging
+//     console.log("📋 Extracted data:", {
+//       first_name,
+//       middle_name,
+//       last_name,
+//       birthdate,
+//       gender,
+//       level,
+//       section,
+//       guardian_name,
+//       guardian_contact_number,
+//       guardian_email,
+//       address,
+//       date_enrolled,
+//       status,
+//     });
+
+//     // Validate required fields
+//     const requiredFields = {
+//       first_name,
+//       last_name,
+//       birthdate,
+//       gender,
+//       level,
+//       guardian_name,
+//       guardian_contact_number,
+//     };
+
+//     const missingFields = Object.entries(requiredFields)
+//       .filter(([key, value]) => !value || value.trim() === "")
+//       .map(([key]) => key);
+
+//     if (missingFields.length > 0) {
+//       console.error("❌ Missing required fields:", missingFields);
+//       return res.status(400).json({
+//         message: `Missing required fields: ${missingFields.join(", ")}`,
+//         missingFields,
+//       });
+//     }
+
+//     // Handle photo - keep existing photo if no new photo uploaded
+//     let photo = req.body.photo; // Default to existing photo
+//     if (req.file) {
+//       photo = req.file.filename;
+//       console.log("📸 New photo uploaded:", photo);
+//     } else {
+//       console.log("📸 No new photo, keeping existing:", photo);
+//     }
+
+//     const sql = `
+//       UPDATE students SET
+//         first_name = ?,
+//         middle_name = ?,
+//         last_name = ?,
+//         birthdate = ?,
+//         gender = ?,
+//         level = ?,
+//         section = ?,
+//         guardian_name = ?,
+//         guardian_contact_number = ?,
+//         guardian_email = ?,
+//         address = ?,
+//         date_enrolled = ?,
+//         status = ?,
+//         photo = ?
+//       WHERE student_id = ?`;
+
+//     const values = [
+//       first_name?.trim() || "",
+//       middle_name?.trim() || "",
+//       last_name?.trim() || "",
+//       birthdate,
+//       gender,
+//       level,
+//       section,
+//       guardian_name?.trim() || "",
+//       guardian_contact_number?.trim() || "",
+//       guardian_email?.trim() || "",
+//       address?.trim() || "",
+//       date_enrolled,
+//       status || "active",
+//       photo,
+//       studentId,
+//     ];
+
+//     console.log("📤 SQL Query:", sql);
+//     console.log("📤 Values:", values);
+
+//     const [result] = await db.query(sql, values);
+
+//     console.log("📋 Update result:", result);
+
+//     // Check if any rows were actually updated
+//     if (result.affectedRows === 0) {
+//       console.error("❌ No rows updated - student might not exist");
+//       return res.status(404).json({
+//         message: "Student not found or no changes made",
+//         studentId: studentId,
+//       });
+//     }
+
+//     console.log("✅ Student updated successfully");
+//     res.status(200).json({
+//       message: "Student updated successfully",
+//       studentId: studentId,
+//       affectedRows: result.affectedRows,
+//     });
+//   } catch (err) {
+//     console.error("❌ Update Error:", err);
+//     console.error("📋 Error stack:", err.stack);
+
+//     // Handle specific database errors
+//     let errorMessage = "Database Error during update";
+//     let statusCode = 500;
+
+//     if (err.code === "ER_DUP_ENTRY") {
+//       errorMessage = "Duplicate entry - student might already exist";
+//       statusCode = 409;
+//     } else if (err.code === "ER_DATA_TOO_LONG") {
+//       errorMessage = "Data too long for database field";
+//       statusCode = 400;
+//     } else if (err.code === "ER_BAD_NULL_ERROR") {
+//       errorMessage = "Required field cannot be null";
+//       statusCode = 400;
+//     }
+
+//     res.status(statusCode).json({
+//       message: errorMessage,
+//       error: process.env.NODE_ENV === "development" ? err.message : undefined,
+//       studentId: studentId,
+//     });
+//   }
+// });

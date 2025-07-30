@@ -3,64 +3,26 @@ import AddStudentModal from "../components/AddStudentModal";
 
 export default function Student() {
   const [selected, setSelected] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [editMode, setEditMode] = useState(false);
 
-  // Save Student Data Request to Server
-  const handleSaveStudent = async (studentData) => {
-    try {
-      const formData = new FormData();
+  // 🆕 Loading states - NEW ADDITION
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-      // Append all fields manually
-      Object.entries(studentData).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+  // 🆕 Pagination states - NEW ADDITION
+  const [currentPage, setCurrentPage] = useState(1);
+  const [studentsPerPage] = useState(10); // You can make this configurable
 
-      const res = await fetch("http://localhost:5000/api/students", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
-      });
-
-      const result = await res.json();
-
-      if (res.ok || res.status === 200 || res.status === 201) {
-        alert("Student saved successfully!");
-        getStudentData();
-        return true; // This will close the modal
-      } else {
-        alert(result.message || "Failed to save student");
-        return false;
-      }
-    } catch (err) {
-      console.error("Failed to POST student data:", err);
-      alert("Something went wrong while saving."); // optional
-      return false;
-    }
-  };
-
-  const toggleSelect = (index) => {
-    if (selected.includes(index)) {
-      setSelected(selected.filter((i) => i !== index));
-    } else {
-      setSelected([...selected, index]);
-    }
-  };
-  // Delete an item from the data
-  const handleDelete = () => {};
-
-  const handleDate = (date) => {
-    const newDate = new Date(date);
-
-    return newDate.toLocaleDateString("en-CA");
-  };
   // Fetch Student Data from the database
   const getStudentData = async () => {
+    setIsLoading(true); // 🆕 START loading
     try {
       const res = await fetch("http://localhost:5000/api/students", {
         method: "GET",
@@ -72,14 +34,182 @@ export default function Student() {
 
       const data = await res.json();
       setStudents(data || []);
+      // 🗑️ REMOVED - totalStudents state not needed since we calculate from filteredStudents.length
     } catch (err) {
       console.log("Fetch Error");
+    } finally {
+      setIsLoading(false); // 🆕 END loading
     }
+  };
+
+  // Save Student Data Request to Server
+  const handleSaveStudent = async (studentData) => {
+    setIsSaving(true); // 🆕 START saving
+    try {
+      const res = await fetch("http://localhost:5000/api/students", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: studentData,
+      });
+
+      const result = await res.json();
+
+      if (res.ok || res.status === 200 || res.status === 201) {
+        alert("Student saved successfully!");
+        getStudentData();
+        return true;
+      } else {
+        alert(result.message || "Failed to save student");
+        return false;
+      }
+    } catch (err) {
+      console.error("Failed to POST student data:", err);
+      alert("Something went wrong while saving.");
+      return false;
+    } finally {
+      setIsSaving(false); // 🆕 END saving
+    }
+  };
+
+  const handleUpdateStudent = async (formData) => {
+    setIsUpdating(true); // 🆕 START updating
+    try {
+      const studentId = formData.get("student_id");
+      let res;
+      try {
+        res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        });
+      } catch (networkError) {
+        console.error("Network error during fetch:", networkError);
+        throw new Error("Fetch/network error");
+      }
+
+      let result;
+      try {
+        result = await res.json();
+      } catch (jsonError) {
+        console.error("Error parsing JSON:", jsonError);
+        const text = await res.text();
+        console.warn("Raw response text:", text);
+        throw new Error("Invalid JSON from server");
+      }
+
+      if (res.ok) {
+        alert("Student updated successfully!");
+        getStudentData();
+        return true;
+      } else {
+        alert(result.message || "Failed to update student");
+        return false;
+      }
+    } catch (err) {
+      console.error("Caught error in handleUpdateStudent:", err);
+      alert("Something went wrong while updating.");
+      return false;
+    } finally {
+      setIsUpdating(false); // 🆕 END updating
+    }
+  };
+
+  const toggleSelect = (index) => {
+    if (selected.includes(index)) {
+      setSelected(selected.filter((i) => i !== index));
+    } else {
+      setSelected([...selected, index]);
+    }
+  };
+
+  const handleDeleteStudent = () => {};
+
+  const handleDate = (date) => {
+    return new Date(date).toLocaleDateString("en-CA");
+  };
+
+  const updateButton = (student_id) => {
+    const student = students.find((s) => s.student_id === student_id);
+    if (!student) return;
+
+    setSelectedStudent(student);
+    setEditMode(true);
+    setShowModal(true);
   };
 
   useEffect(() => {
     getStudentData();
   }, []);
+
+  // 🆕 NEW - Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterLevel, filterStatus]);
+
+  // Filter students based on search and filters
+  const filteredStudents = students.filter((s) => {
+    const fullName = `${s.first_name} ${s.middle_name || ""} ${s.last_name}`
+      .toLowerCase()
+      .trim();
+    const studentId = s.student_id?.toLowerCase() || "";
+    const search = searchTerm.toLowerCase().trim();
+
+    const matchesSearch =
+      fullName.includes(search) || studentId.includes(search);
+    const matchesLevel = filterLevel ? s.level === filterLevel : true;
+    const matchesStatus = filterStatus ? s.status === filterStatus : true;
+
+    return matchesSearch && matchesLevel && matchesStatus;
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+  const startIndex = (currentPage - 1) * studentsPerPage;
+  const endIndex = startIndex + studentsPerPage;
+  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setSelected([]); // Clear selections when changing pages
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    
+    return pageNumbers;
+  };
 
   return (
     <div className="mt-5">
@@ -116,7 +246,8 @@ export default function Student() {
                 <option value="Kindergarten">Kindergarten</option>
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
-                {/* Add more levels as needed */}
+                <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option> {/* 🔧 FIXED - Added missing grades */}
               </select>
             </div>
 
@@ -134,6 +265,7 @@ export default function Student() {
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+                <option value="graduated">Graduated</option> {/* 🔧 FIXED - Corrected typo from "Graudated" */}
               </select>
             </div>
           </div>
@@ -146,33 +278,73 @@ export default function Student() {
             Manage <strong>Students</strong>
           </h5>
           <div>
-            <button className="btn btn-danger me-2" onClick={handleDelete}>
-              <i className="bi bi-dash-circle me-1"></i> Delete
+            <button
+              className="btn btn-danger me-2"
+              onClick={handleDeleteStudent}
+              disabled={selected.length === 0}
+            >
+              <i className="bi bi-dash-circle me-1"></i> Delete (
+              {selected.length})
             </button>
-            {/* Add Student Functionality */}
             <button
               className="btn btn-success"
               onClick={() => setShowModal(true)}
+              disabled={isSaving || isUpdating} // 🆕 Disable during save/update operations
             >
               <i className="bi bi-plus-circle me-1"></i> Add New Student
             </button>
 
             <AddStudentModal
               show={showModal}
-              onClose={() => setShowModal(false)}
+              mode={editMode ? "edit" : "add"}
+              studentData={editMode ? selectedStudent : null}
+              onClose={() => {
+                setShowModal(false);
+                setEditMode(false);
+                setSelectedStudent(null);
+              }}
               onSave={handleSaveStudent}
+              onEdit={handleUpdateStudent}
             />
           </div>
         </div>
 
         <div className="card-body p-0 table-responsive">
-          <table className="table table-striped table-hover mb-0">
+          {/* 🆕 Loading state for table */}
+          {isLoading ? (
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+              <div className="text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <div className="mt-2 text-muted">Loading students...</div>
+              </div>
+            </div>
+          ) : (
+            <table className="table table-striped table-hover mb-0">
             <thead className="table-light">
               <tr>
                 <th>
-                  <input type="checkbox" disabled />
+                  <input
+                    type="checkbox"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        // 🔧 MODIFIED - Select all items on current page only
+                        setSelected(currentStudents.map((_, index) => startIndex + index));
+                      } else {
+                        setSelected([]);
+                      }
+                    }}
+                    checked={
+                      currentStudents.length > 0 &&
+                      currentStudents.every((_, index) => 
+                        selected.includes(startIndex + index)
+                      ) // 🔧 MODIFIED - Check if all current page items are selected
+                    }
+                  />
                 </th>
                 <th>Student ID</th>
+                <th>LRN</th>
                 <th>Name</th>
                 <th>Birthdate</th>
                 <th>Gender</th>
@@ -180,60 +352,70 @@ export default function Student() {
                 <th>Section</th>
                 <th>Guardian</th>
                 <th>Guardian Contact</th>
-                <th>Guardian Email</th>
-                <th>Address</th>
                 <th>Status</th>
                 <th>Date Enrolled</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s, i) => (
-                <tr key={i}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      style={{ width: "100%", height: "25px" }}
-                      checked={selected.includes(i)}
-                      onChange={() => toggleSelect(i)}
-                    />
-                  </td>
-                  <td>{s.student_id}</td>
-                  <td>{`${s.first_name} ${s.middle_name || ""} ${
-                    s.last_name
-                  }`}</td>
-                  <td>{handleDate(s.birthdate)}</td>
-                  <td>{s.gender}</td>
-                  <td>{s.level}</td>
-                  <td>{s.section}</td>
-                  <td>{s.guardian_name}</td>
-                  <td>{s.guardian_contact_number}</td>
-                  <td>{s.guardian_email}</td>
-                  <td>{s.address}</td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        s.status === "active" ? "bg-success" : "bg-secondary"
-                      }`}
-                    >
-                      {s.status}
-                    </span>
-                  </td>
-                  <td>{handleDate(s.date_enrolled)}</td>
-                  <td>
-                    <button className="btn btn-sm text-warning">
-                      <i className="bi bi-pencil-square"></i>
-                    </button>
-                    <button className="btn btn-sm text-danger">
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {students.length === 0 && (
+              {currentStudents.map((s, i) => {
+                const actualIndex = startIndex + i; // 🔧 MODIFIED - Calculate actual index for selection
+                return (
+                  <tr key={actualIndex}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        style={{ width: "100%", height: "25px" }}
+                        checked={selected.includes(actualIndex)} {/* 🔧 MODIFIED - Use actualIndex */}
+                        onChange={() => toggleSelect(actualIndex)} {/* 🔧 MODIFIED - Use actualIndex */}
+                      />
+                    </td>
+                    <td>{s.student_id}</td>
+                    <td>{s.LRN}</td>
+                    <td>{`${s.first_name} ${s.middle_name || ""} ${s.last_name}`}</td>
+                    <td>{handleDate(s.birthdate)}</td>
+                    <td>{s.gender}</td>
+                    <td>{s.level}</td>
+                    <td>{s.section}</td>
+                    <td>{s.guardian_name}</td>
+                    <td>{s.guardian_contact_number}</td>
+                    <td>
+                      <span
+                        style={{ fontSize: "15px" }}
+                        className={`badge ${
+                          s.status === "active"
+                            ? "bg-success"
+                            : s.status === "inactive"
+                            ? "bg-secondary"
+                            : s.status === "graduated"
+                            ? "bg-warning text-dark"
+                            : "bg-light"
+                        }`}
+                      >
+                        {s.status}
+                      </span>
+                    </td>
+                    <td>{handleDate(s.date_enrolled)}</td>
+                    <td>
+                      <button
+                        className="btn btn-lg text-warning"
+                        onClick={() => updateButton(s.student_id)}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </button>
+                      <button className="btn btn-lg text-danger">
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {currentStudents.length === 0 && (
                 <tr>
                   <td colSpan="13" className="text-center py-3 text-muted">
-                    No students found.
+                    {filteredStudents.length === 0 
+                      ? "No students found." 
+                      : "No students on this page."} {/* 🔧 IMPROVED - Better empty state messages */}
                   </td>
                 </tr>
               )}
@@ -242,31 +424,96 @@ export default function Student() {
         </div>
 
         <div className="card-footer d-flex justify-content-between align-items-center">
-          <small>Showing {students.length} students</small>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item">
-                <a className="page-link" href="#">
-                  Previous
-                </a>
-              </li>
-              <li className="page-item active">
-                <a className="page-link" href="#">
-                  1
-                </a>
-              </li>
-              <li className="page-item">
-                <a className="page-link" href="#">
-                  2
-                </a>
-              </li>
-              <li className="page-item">
-                <a className="page-link" href="#">
-                  Next
-                </a>
-              </li>
-            </ul>
-          </nav>
+          <div>
+            <small className="text-muted">
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
+              {filteredStudents.length !== students.length && (
+                <span> (filtered from {students.length} total)</span>
+              )} {/* 🆕 NEW - Enhanced display info showing filtered vs total */}
+            </small>
+          </div>
+          
+          {/* 🆕 NEW - Complete Pagination Controls replacing static pagination */}
+          {totalPages > 1 && (
+            <nav aria-label="Student pagination">
+              <ul className="pagination pagination-sm mb-0">
+                {/* Previous Button */}
+                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
+                </li>
+
+                {/* First Page */}
+                {getPageNumbers()[0] > 1 && (
+                  <>
+                    <li className="page-item">
+                      <button 
+                        className="page-link" 
+                        onClick={() => handlePageChange(1)}
+                      >
+                        1
+                      </button>
+                    </li>
+                    {getPageNumbers()[0] > 2 && (
+                      <li className="page-item disabled">
+                        <span className="page-link">...</span>
+                      </li>
+                    )}
+                  </>
+                )}
+
+                {/* Page Numbers */}
+                {getPageNumbers().map((pageNum) => (
+                  <li 
+                    key={pageNum} 
+                    className={`page-item ${currentPage === pageNum ? "active" : ""}`}
+                  >
+                    <button 
+                      className="page-link" 
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  </li>
+                ))}
+
+                {/* Last Page */}
+                {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                  <>
+                    {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                      <li className="page-item disabled">
+                        <span className="page-link">...</span>
+                      </li>
+                    )}
+                    <li className="page-item">
+                      <button 
+                        className="page-link" 
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+
+                {/* Next Button */}
+                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       </div>
     </div>

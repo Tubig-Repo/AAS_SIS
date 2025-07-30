@@ -1,9 +1,18 @@
 import { useState } from "react";
 import placeholderPhoto from "../assets/placeholder_photo.png"; // adjust path based on file location
+import { useEffect } from "react";
 
-export default function AddStudentModal({ show, onClose, onSave }) {
+export default function AddStudentModal({
+  show,
+  onClose,
+  onSave,
+  mode = "add",
+  studentData = null,
+  onEdit,
+}) {
   const [form, setForm] = useState({
     student_id: "",
+    LRN: "",
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -15,9 +24,9 @@ export default function AddStudentModal({ show, onClose, onSave }) {
     guardian_contact_number: "",
     guardian_email: "",
     address: "",
-    date_enrolled: "", // or use new Date().toISOString().slice(0, 10)
-    status: "Active", // default value if needed
-    photo: null, // this should be a File object
+    date_enrolled: "",
+    status: "",
+    photo: null,
   });
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,8 +34,11 @@ export default function AddStudentModal({ show, onClose, onSave }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Optional: Prevent non-numeric input for contact number
-    if (name === "guardian_contact_number" && !/^\d*$/.test(value)) {
+    // Prevent non-numeric input for specific fields
+    if (
+      (name === "guardian_contact_number" && !/^\d*$/.test(value)) ||
+      (name === "LRN" && !/^\d*$/.test(value))
+    ) {
       return;
     }
 
@@ -35,9 +47,9 @@ export default function AddStudentModal({ show, onClose, onSave }) {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    console.log(file);
+
     if (file) {
-      setForm({ ...form, photo: file });
+      setForm((prev) => ({ ...prev, photo: file }));
       setPreview(URL.createObjectURL(file));
     }
   };
@@ -47,23 +59,64 @@ export default function AddStudentModal({ show, onClose, onSave }) {
     setIsLoading(true);
 
     try {
-      const success = await onSave(form); // Wait for server response
+      const formData = new FormData();
+
+      // Append fields in a specific order to ensure consistency
+      const fieldOrder = [
+        "student_id",
+        "LRN",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "birthdate",
+        "gender",
+        "level",
+        "section",
+        "guardian_name",
+        "guardian_contact_number",
+        "guardian_email",
+        "address",
+        "date_enrolled",
+        "status",
+        "photo",
+      ];
+
+      fieldOrder.forEach((key) => {
+        if (form[key] !== null && form[key] !== undefined) {
+          formData.append(key, form[key]);
+        }
+      });
+
+      console.log("this is form", form);
+      console.log("FormData contents:");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      let success;
+
+      if (mode === "edit") {
+        success = await onEdit(formData); // use update method
+      } else {
+        success = await onSave(formData); // use create method
+      }
 
       if (success) {
-        clearFields(); // Only clear on success
+        clearFields(); // Clear only if success
       } else {
         console.warn("Save failed – keeping modal open");
       }
     } catch (err) {
       console.error("Error during save:", err);
     } finally {
-      setIsLoading(false); // Always turn loading off
+      setIsLoading(false);
     }
   };
 
   const clearFields = () => {
     setForm({
       student_id: "",
+      LRN: "",
       first_name: "",
       middle_name: "",
       last_name: "",
@@ -76,12 +129,55 @@ export default function AddStudentModal({ show, onClose, onSave }) {
       guardian_email: "",
       guardian_contact_number: "",
       photo: null,
-      date_enrolled: "", // <-- add this!
-      status: "Active", // <-- also re-add this if you want to keep the default
+      date_enrolled: "",
+      status: "",
     });
     setPreview(null);
     onClose();
   };
+
+  useEffect(() => {
+    if (mode === "edit" && studentData) {
+      console.log(studentData.status);
+
+      setForm((prev) => ({
+        ...prev,
+        ...studentData,
+        // fix format date for editing function to fill the form
+        birthdate: studentData.birthdate?.slice(0, 10), // <- Fix format
+        date_enrolled: studentData.date_enrolled?.slice(0, 10), // <- Fix format
+      }));
+
+      if (studentData.photo && typeof studentData.photo === "string") {
+        const photoPath = studentData.photo.startsWith("http")
+          ? studentData.photo // external URL
+          : `http://localhost:5000/uploads/${studentData.photo}`; // local backend path
+        setPreview(photoPath);
+      } else {
+        setPreview(null);
+      }
+    } else if (mode === "add") {
+      setForm({
+        student_id: "",
+        LRN: "",
+        first_name: "",
+        middle_name: "",
+        last_name: "",
+        birthdate: "",
+        gender: "",
+        level: "",
+        section: "",
+        address: "",
+        guardian_name: "",
+        guardian_email: "",
+        guardian_contact_number: "",
+        photo: null,
+        date_enrolled: "",
+        status: "active", // Changed from "Active" to "active" to match select options
+      });
+      setPreview(null);
+    }
+  }, [studentData, mode, show]);
 
   return (
     <div
@@ -97,7 +193,9 @@ export default function AddStudentModal({ show, onClose, onSave }) {
         <div className="modal-content">
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="modal-header bg-primary text-white">
-              <h5 className="modal-title">Add New Student</h5>
+              <h5 className="modal-title">
+                {mode === "edit" ? "Update Student" : "Add New Student"}
+              </h5>
               <button
                 type="button"
                 className="btn-close"
@@ -108,6 +206,11 @@ export default function AddStudentModal({ show, onClose, onSave }) {
               <label htmlFor="photoUpload" style={{ cursor: "pointer" }}>
                 <img
                   src={preview || placeholderPhoto}
+                  // If photo is in the DB but not found in the photos folder
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = placeholderPhoto;
+                  }}
                   alt="student-avatar"
                   className="rounded-circle"
                   style={{
@@ -129,6 +232,7 @@ export default function AddStudentModal({ show, onClose, onSave }) {
             <div className="modal-body row g-3">
               {[
                 ["student_id", "Student ID"],
+                ["LRN", "Learners Reference Number"],
                 ["first_name", "First Name"],
                 ["middle_name", "Middle Name"],
                 ["last_name", "Last Name"],
@@ -176,9 +280,9 @@ export default function AddStudentModal({ show, onClose, onSave }) {
                       )}
                       {name === "status" && (
                         <>
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Graduated">Graduated</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="graduated">Graduated</option>
                         </>
                       )}
                     </select>
@@ -194,12 +298,25 @@ export default function AddStudentModal({ show, onClose, onSave }) {
                       onChange={handleChange}
                       required
                     />
+                  ) : name === "LRN" ? (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{12}"
+                      maxLength="12"
+                      title="Enter 12-digit Learner's Reference Number"
+                      className="form-control"
+                      name={name}
+                      value={form[name]}
+                      onChange={handleChange}
+                      required
+                    />
                   ) : (
                     <input
                       type={type}
                       className="form-control"
                       name={name}
-                      value={form[name]}
+                      value={form[name] ?? ""}
                       onChange={handleChange}
                       required
                     />
@@ -221,7 +338,13 @@ export default function AddStudentModal({ show, onClose, onSave }) {
                 className="btn btn-success"
                 disabled={isLoading}
               >
-                {isLoading ? "Saving..." : "Save Student"}
+                {isLoading
+                  ? mode === "edit"
+                    ? "Updating..."
+                    : "Saving..."
+                  : mode === "edit"
+                  ? "Update Student"
+                  : "Save Student"}
               </button>
             </div>
           </form>
