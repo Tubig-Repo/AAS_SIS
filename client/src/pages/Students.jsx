@@ -11,18 +11,17 @@ export default function Student() {
   const [filterStatus, setFilterStatus] = useState("");
   const [editMode, setEditMode] = useState(false);
 
-  // 🆕 Loading states - NEW ADDITION
+  // 🆕 Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [studentsPerPage] = useState(5); // You can make this configurable
+
+  // 🆕 Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-
-  // 🆕 Pagination states - NEW ADDITION
-  const [currentPage, setCurrentPage] = useState(1);
-  const [studentsPerPage] = useState(10); // You can make this configurable
-
   // Fetch Student Data from the database
   const getStudentData = async () => {
-    setIsLoading(true); // 🆕 START loading
+    setIsLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/students", {
         method: "GET",
@@ -38,13 +37,13 @@ export default function Student() {
     } catch (err) {
       console.log("Fetch Error");
     } finally {
-      setIsLoading(false); // 🆕 END loading
+      setIsLoading(false);
     }
   };
 
   // Save Student Data Request to Server
   const handleSaveStudent = async (studentData) => {
-    setIsSaving(true); // 🆕 START saving
+    setIsLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/students", {
         method: "POST",
@@ -69,14 +68,15 @@ export default function Student() {
       alert("Something went wrong while saving.");
       return false;
     } finally {
-      setIsSaving(false); // 🆕 END saving
+      setIsLoading(false);
     }
   };
 
   const handleUpdateStudent = async (formData) => {
-    setIsUpdating(true); // 🆕 START updating
+    setIsUpdating(true);
     try {
       const studentId = formData.get("student_id");
+
       let res;
       try {
         res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
@@ -114,7 +114,7 @@ export default function Student() {
       alert("Something went wrong while updating.");
       return false;
     } finally {
-      setIsUpdating(false); // 🆕 END updating
+      setIsUpdating(false);
     }
   };
 
@@ -145,7 +145,7 @@ export default function Student() {
     getStudentData();
   }, []);
 
-  // 🆕 NEW - Reset to first page when filters change
+  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterLevel, filterStatus]);
@@ -196,18 +196,18 @@ export default function Student() {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(i);
     }
-    
+
     return pageNumbers;
   };
 
@@ -247,7 +247,7 @@ export default function Student() {
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
                 <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option> {/* 🔧 FIXED - Added missing grades */}
+                <option value="Grade 4">Grade 4</option>
               </select>
             </div>
 
@@ -265,7 +265,7 @@ export default function Student() {
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="graduated">Graduated</option> {/* 🔧 FIXED - Corrected typo from "Graudated" */}
+                <option value="graduated">Graduated</option>
               </select>
             </div>
           </div>
@@ -287,11 +287,12 @@ export default function Student() {
               {selected.length})
             </button>
             <button
+              disabled={isSaving}
               className="btn btn-success"
               onClick={() => setShowModal(true)}
-              disabled={isSaving || isUpdating} // 🆕 Disable during save/update operations
             >
-              <i className="bi bi-plus-circle me-1"></i> Add New Student
+              <i className="bi bi-plus-circle me-1"></i>{" "}
+              {isSaving ? "Saving..." : "Add New Student"}
             </button>
 
             <AddStudentModal
@@ -310,137 +311,152 @@ export default function Student() {
         </div>
 
         <div className="card-body p-0 table-responsive">
-          {/* 🆕 Loading state for table */}
           {isLoading ? (
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <div className="mt-2 text-muted">Loading students...</div>
-              </div>
+            <div className="text-center p-4">
+              <div className="spinner-border" role="status"></div>
+              <div>Loading students...</div>
             </div>
           ) : (
+            // Your existing table
             <table className="table table-striped table-hover mb-0">
-            <thead className="table-light">
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        // 🔧 MODIFIED - Select all items on current page only
-                        setSelected(currentStudents.map((_, index) => startIndex + index));
-                      } else {
-                        setSelected([]);
+              <thead className="table-light">
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          // Select all items on current page
+                          setSelected(
+                            currentStudents.map(
+                              (_, index) => startIndex + index
+                            )
+                          );
+                        } else {
+                          setSelected([]);
+                        }
+                      }}
+                      checked={
+                        currentStudents.length > 0 &&
+                        currentStudents.every((_, index) =>
+                          selected.includes(startIndex + index)
+                        )
                       }
-                    }}
-                    checked={
-                      currentStudents.length > 0 &&
-                      currentStudents.every((_, index) => 
-                        selected.includes(startIndex + index)
-                      ) // 🔧 MODIFIED - Check if all current page items are selected
-                    }
-                  />
-                </th>
-                <th>Student ID</th>
-                <th>LRN</th>
-                <th>Name</th>
-                <th>Birthdate</th>
-                <th>Gender</th>
-                <th>Level</th>
-                <th>Section</th>
-                <th>Guardian</th>
-                <th>Guardian Contact</th>
-                <th>Status</th>
-                <th>Date Enrolled</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentStudents.map((s, i) => {
-                const actualIndex = startIndex + i; // 🔧 MODIFIED - Calculate actual index for selection
-                return (
-                  <tr key={actualIndex}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        style={{ width: "100%", height: "25px" }}
-                        checked={selected.includes(actualIndex)} {/* 🔧 MODIFIED - Use actualIndex */}
-                        onChange={() => toggleSelect(actualIndex)} {/* 🔧 MODIFIED - Use actualIndex */}
-                      />
-                    </td>
-                    <td>{s.student_id}</td>
-                    <td>{s.LRN}</td>
-                    <td>{`${s.first_name} ${s.middle_name || ""} ${s.last_name}`}</td>
-                    <td>{handleDate(s.birthdate)}</td>
-                    <td>{s.gender}</td>
-                    <td>{s.level}</td>
-                    <td>{s.section}</td>
-                    <td>{s.guardian_name}</td>
-                    <td>{s.guardian_contact_number}</td>
-                    <td>
-                      <span
-                        style={{ fontSize: "15px" }}
-                        className={`badge ${
-                          s.status === "active"
-                            ? "bg-success"
-                            : s.status === "inactive"
-                            ? "bg-secondary"
-                            : s.status === "graduated"
-                            ? "bg-warning text-dark"
-                            : "bg-light"
-                        }`}
-                      >
-                        {s.status}
-                      </span>
-                    </td>
-                    <td>{handleDate(s.date_enrolled)}</td>
-                    <td>
-                      <button
-                        className="btn btn-lg text-warning"
-                        onClick={() => updateButton(s.student_id)}
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                      </button>
-                      <button className="btn btn-lg text-danger">
-                        <i className="bi bi-trash"></i>
-                      </button>
+                    />
+                  </th>
+                  <th>Student ID</th>
+                  <th>LRN</th>
+                  <th>Name</th>
+                  <th>Birthdate</th>
+                  <th>Gender</th>
+                  <th>Level</th>
+                  <th>Section</th>
+                  <th>Guardian</th>
+                  <th>Guardian Contact</th>
+                  <th>Status</th>
+                  <th>Date Enrolled</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentStudents.map((s, i) => {
+                  const actualIndex = startIndex + i;
+                  return (
+                    <tr key={actualIndex}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          style={{ width: "100%", height: "25px" }}
+                          checked={selected.includes(actualIndex)}
+                          onChange={() => toggleSelect(actualIndex)}
+                        />
+                      </td>
+                      <td>{s.student_id}</td>
+                      <td>{s.LRN}</td>
+                      <td>{`${s.first_name} ${s.middle_name || ""} ${
+                        s.last_name
+                      }`}</td>
+                      <td>{handleDate(s.birthdate)}</td>
+                      <td>{s.gender}</td>
+                      <td>{s.level}</td>
+                      <td>{s.section}</td>
+                      <td>{s.guardian_name}</td>
+                      <td>{s.guardian_contact_number}</td>
+                      <td>
+                        <span
+                          style={{ fontSize: "15px" }}
+                          className={`badge ${
+                            s.status === "active"
+                              ? "bg-success"
+                              : s.status === "inactive"
+                              ? "bg-secondary"
+                              : s.status === "graduated"
+                              ? "bg-warning text-dark"
+                              : "bg-light"
+                          }`}
+                        >
+                          {s.status}
+                        </span>
+                      </td>
+                      <td>{handleDate(s.date_enrolled)}</td>
+                      <td>
+                        <button
+                          disabled={isUpdating}
+                          className="btn btn-lg text-warning"
+                          onClick={() => updateButton(s.student_id)}
+                        >
+                          {isUpdating ? (
+                            <span className="spinner-border spinner-border-sm"></span>
+                          ) : (
+                            <i className="bi bi-pencil-square"></i>
+                          )}
+                        </button>
+                        <button className="btn btn-lg text-danger">
+                          <i className="bi bi-trash"></i>
+                        </button>
+                        <button className="btn btn-lg">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {currentStudents.length === 0 && (
+                  <tr>
+                    <td colSpan="13" className="text-center py-3 text-muted">
+                      {filteredStudents.length === 0
+                        ? "No students found."
+                        : "No students on this page."}
                     </td>
                   </tr>
-                );
-              })}
-              {currentStudents.length === 0 && (
-                <tr>
-                  <td colSpan="13" className="text-center py-3 text-muted">
-                    {filteredStudents.length === 0 
-                      ? "No students found." 
-                      : "No students on this page."} {/* 🔧 IMPROVED - Better empty state messages */}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="card-footer d-flex justify-content-between align-items-center">
           <div>
             <small className="text-muted">
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
+              Showing {startIndex + 1} to{" "}
+              {Math.min(endIndex, filteredStudents.length)} of{" "}
+              {filteredStudents.length} students
               {filteredStudents.length !== students.length && (
                 <span> (filtered from {students.length} total)</span>
-              )} {/* 🆕 NEW - Enhanced display info showing filtered vs total */}
+              )}
             </small>
           </div>
-          
-          {/* 🆕 NEW - Complete Pagination Controls replacing static pagination */}
+
+          {/* Pagination Controls */}
           {totalPages > 1 && (
             <nav aria-label="Student pagination">
               <ul className="pagination pagination-sm mb-0">
                 {/* Previous Button */}
-                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                  <button 
-                    className="page-link" 
+                <li
+                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
                     onClick={handlePrevious}
                     disabled={currentPage === 1}
                   >
@@ -452,8 +468,8 @@ export default function Student() {
                 {getPageNumbers()[0] > 1 && (
                   <>
                     <li className="page-item">
-                      <button 
-                        className="page-link" 
+                      <button
+                        className="page-link"
                         onClick={() => handlePageChange(1)}
                       >
                         1
@@ -469,12 +485,14 @@ export default function Student() {
 
                 {/* Page Numbers */}
                 {getPageNumbers().map((pageNum) => (
-                  <li 
-                    key={pageNum} 
-                    className={`page-item ${currentPage === pageNum ? "active" : ""}`}
+                  <li
+                    key={pageNum}
+                    className={`page-item ${
+                      currentPage === pageNum ? "active" : ""
+                    }`}
                   >
-                    <button 
-                      className="page-link" 
+                    <button
+                      className="page-link"
                       onClick={() => handlePageChange(pageNum)}
                     >
                       {pageNum}
@@ -485,14 +503,15 @@ export default function Student() {
                 {/* Last Page */}
                 {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
                   <>
-                    {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                    {getPageNumbers()[getPageNumbers().length - 1] <
+                      totalPages - 1 && (
                       <li className="page-item disabled">
                         <span className="page-link">...</span>
                       </li>
                     )}
                     <li className="page-item">
-                      <button 
-                        className="page-link" 
+                      <button
+                        className="page-link"
                         onClick={() => handlePageChange(totalPages)}
                       >
                         {totalPages}
@@ -502,9 +521,13 @@ export default function Student() {
                 )}
 
                 {/* Next Button */}
-                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                  <button 
-                    className="page-link" 
+                <li
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
                     onClick={handleNext}
                     disabled={currentPage === totalPages}
                   >
