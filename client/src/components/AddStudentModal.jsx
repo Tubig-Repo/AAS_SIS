@@ -27,6 +27,7 @@ export default function AddStudentModal({
     date_enrolled: "",
     status: "",
     photo: null,
+    payment_plan: "",
   });
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -131,11 +132,12 @@ export default function AddStudentModal({
       photo: null,
       date_enrolled: "",
       status: "",
+      payment_plan: "",
     });
     setPreview(null);
     onClose();
   };
-
+  // Using the same modal for when the user press add and edit
   useEffect(() => {
     if (mode === "edit" && studentData) {
       console.log(studentData.status);
@@ -246,13 +248,15 @@ export default function AddStudentModal({
                 ["guardian_name", "Guardian Name"],
                 ["guardian_email", "Guardian Email", "email"],
                 ["guardian_contact_number", "Guardian Contact", "tel"],
+                ["payment_plan", "Payment Plan"],
               ].map(([name, label, type = "text"]) => (
                 <div className="col-md-6" key={name}>
                   <label className="form-label">{label}</label>
 
                   {name === "gender" ||
                   name === "level" ||
-                  name === "status" ? (
+                  name === "status" ||
+                  name === "payment_plan" ? (
                     <select
                       className="form-select"
                       name={name}
@@ -283,6 +287,12 @@ export default function AddStudentModal({
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
                           <option value="graduated">Graduated</option>
+                        </>
+                      )}
+                      {name === "payment_plan" && (
+                        <>
+                          <option value="Installment">Installment</option>
+                          <option value="Fully Paid">Fully Paid</option>
                         </>
                       )}
                     </select>

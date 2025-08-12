@@ -354,6 +354,7 @@ export default function Student() {
                   <th>Guardian</th>
                   <th>Guardian Contact</th>
                   <th>Status</th>
+                  <th>Payment Plan</th>
                   <th>Date Enrolled</th>
                   <th>Actions</th>
                 </tr>
