@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./authRoutes");
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 const adminRoutes = require("./adminRoutes");
 const studentRoutes = require("./studentRoute");
 const app = express();

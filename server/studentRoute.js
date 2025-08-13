@@ -15,9 +15,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+//Get Academic Years
+
+router.get("/academic-years", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM academic_years");
+    res.json(rows);
+  } catch (err) {
+    console.error("DB Error:", err);
+    res.status(500).json({ message: "Database Error" });
+  }
+});
+
 // Get a single student id
 
-// Create A new Student
+// Using Multer for storing photos
 const storage = multer.diskStorage({
   destination: "./uploads",
   filename: (req, file, cb) => {
@@ -26,7 +38,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
+// Creating a new Student
 router.post("/", upload.single("photo"), async (req, res) => {
   console.log("POST uploaded file:", req.file);
   console.log("POST Body Request:", req.body);
@@ -47,6 +59,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
     address,
     date_enrolled,
     status,
+    payment_plan,
   } = req.body;
 
   const photo = req.file ? req.file.filename : null;
@@ -68,15 +81,16 @@ router.post("/", upload.single("photo"), async (req, res) => {
     address,
     date_enrolled,
     status,
+    payment_plan,
     photo,
   });
 
   try {
     const sql = `
-     INSERT INTO students 
-        (student_id, LRN, first_name, middle_name, last_name, birthdate, gender, level, section,
-         guardian_name, guardian_contact_number, guardian_email, address, date_enrolled, status, photo)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  INSERT INTO students 
+    (student_id, LRN, first_name, middle_name, last_name, birthdate, gender, level, section,
+     guardian_name, guardian_contact_number, guardian_email, address, date_enrolled, status, payment_plan, photo)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const values = [
       student_id,
@@ -94,6 +108,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
       address,
       date_enrolled,
       status,
+      payment_plan,
       photo,
     ];
 
@@ -113,6 +128,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
     });
   }
 });
+/* ===================== end of creating a student ======================*/
 // Update a student by ID
 router.put("/:id", upload.single("photo"), async (req, res) => {
   const studentId = req.params.id;
@@ -132,6 +148,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
     address,
     date_enrolled,
     status,
+    payment_plan,
   } = req.body;
 
   const photo = req.file ? req.file.filename : req.body.photo; // Keep old photo if not replaced
@@ -152,6 +169,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
         address = ?,
         date_enrolled = ?,
         status = ?,
+        payment_plan = ?,
         photo = ?
       WHERE student_id = ?`;
 
@@ -170,6 +188,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
       address,
       date_enrolled,
       status,
+      payment_plan,
       photo,
       studentId,
     ];
