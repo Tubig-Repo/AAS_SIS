@@ -399,6 +399,27 @@ export default function Student() {
                           {s.status}
                         </span>
                       </td>
+                      <td>
+                        <span
+                          style={{
+                            fontSize: "15px",
+                            backgroundColor:
+                              s.payment_plan === "Fully Paid"
+                                ? "gold"
+                                : s.payment_plan === "Installment"
+                                ? "gray"
+                                : "#f8f9fa", // light gray fallback
+                            color:
+                              s.payment_plan === "Fully Paid"
+                                ? "black"
+                                : "white",
+                            padding: "5px 10px",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          {s.payment_plan}
+                        </span>
+                      </td>
                       <td>{handleDate(s.date_enrolled)}</td>
                       <td>
                         <button

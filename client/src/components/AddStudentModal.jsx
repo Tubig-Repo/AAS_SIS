@@ -31,6 +31,23 @@ export default function AddStudentModal({
   });
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [academicYears, setAcademicYears] = useState([]);
+  useEffect(() => {
+    const fetchAcademicYears = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/academic-years");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setAcademicYears(data);
+      } catch (err) {
+        console.error("Failed to fetch academic years:", err);
+      }
+    };
+
+    fetchAcademicYears();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,6 +96,7 @@ export default function AddStudentModal({
         "address",
         "date_enrolled",
         "status",
+        "payment_plan",
         "photo",
       ];
 
@@ -176,6 +194,7 @@ export default function AddStudentModal({
         photo: null,
         date_enrolled: "",
         status: "active", // Changed from "Active" to "active" to match select options
+        payment_plan: "",
       });
       setPreview(null);
     }
@@ -238,6 +257,7 @@ export default function AddStudentModal({
                 ["first_name", "First Name"],
                 ["middle_name", "Middle Name"],
                 ["last_name", "Last Name"],
+                ["academic_years", "Academic Year"],
                 ["birthdate", "Birthdate", "date"],
                 ["date_enrolled", "Date Enrolled", "date"],
                 ["gender", "Gender"],
@@ -256,7 +276,8 @@ export default function AddStudentModal({
                   {name === "gender" ||
                   name === "level" ||
                   name === "status" ||
-                  name === "payment_plan" ? (
+                  name === "payment_plan" ||
+                  name === "academic_years" ? (
                     <select
                       className="form-select"
                       name={name}
@@ -295,6 +316,13 @@ export default function AddStudentModal({
                           <option value="Fully Paid">Fully Paid</option>
                         </>
                       )}
+
+                      {name === "academic_years" &&
+                        academicYears.map((year) => (
+                          <option key={year.id} value={year.id}>
+                            {year.year_label}
+                          </option>
+                        ))}
                     </select>
                   ) : name === "guardian_contact_number" ? (
                     <input
