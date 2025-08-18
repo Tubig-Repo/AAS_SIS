@@ -35,7 +35,9 @@ export default function AddStudentModal({
   useEffect(() => {
     const fetchAcademicYears = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/academic-years");
+        const res = await fetch(
+          "http://localhost:5000/api/students/academic-years"
+        );
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
