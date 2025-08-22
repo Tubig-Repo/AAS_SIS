@@ -161,7 +161,6 @@ export default function AddStudentModal({
   useEffect(() => {
     if (mode === "edit" && studentData) {
       console.log(studentData.status);
-
       setForm((prev) => ({
         ...prev,
         ...studentData,

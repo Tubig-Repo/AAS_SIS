@@ -4,6 +4,7 @@ const authRoutes = require("./authRoutes");
 // const bcrypt = require("bcrypt");
 const adminRoutes = require("./adminRoutes");
 const studentRoutes = require("./studentRoute");
+const tuitionRoutes = require("./tuitionFeeRoute");
 const app = express();
 const db = require("./db");
 app.use(cors());
@@ -16,6 +17,7 @@ app.use("/api/admin", adminRoutes);
 // Student Routes
 app.use("/api/students", studentRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/tuition", tuitionRoutes);
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));
 
 // ✅ Admin Seeder (Run only once)

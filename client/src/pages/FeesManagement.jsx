@@ -5,6 +5,11 @@ export default function FeesManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
 
+  // 🆕 Loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   // Sample data based on Abraham and Aysak School structure
   const [students, setStudents] = useState([
     {
@@ -88,6 +93,12 @@ export default function FeesManagement() {
     },
   ]);
 
+  const getBasicStudent = async () => {
+    setIsLoading(true);
+    try {
+    } catch (error) {}
+  };
+
   const handleEditFee = (fee, type) => {
     setEditingFee({ ...fee, type });
     setShowAddModal(true);
@@ -121,7 +132,7 @@ export default function FeesManagement() {
             custom charges
           </p>
         </div>
-        <button
+        {/* <button
           className="btn btn-primary"
           onClick={() => {
             setEditingFee(null);
@@ -130,7 +141,7 @@ export default function FeesManagement() {
         >
           <i className="bi bi-plus-circle me-2"></i>
           Add New Fee
-        </button>
+        </button> */}
       </div>
 
       {/* Stats Cards */}
@@ -146,7 +157,7 @@ export default function FeesManagement() {
             Tuition & Miscellaneous Fees
           </button>
         </li>
-        <li className="nav-item">
+        {/* <li className="nav-item">
           <button
             className={`nav-link ${activeTab === "custom" ? "active" : ""}`}
             onClick={() => setActiveTab("custom")}
@@ -154,7 +165,7 @@ export default function FeesManagement() {
             <i className="bi bi-plus-square me-2"></i>
             Custom & Add-on Fees
           </button>
-        </li>
+        </li> */}
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === "balances" ? "active" : ""}`}
@@ -203,12 +214,12 @@ export default function FeesManagement() {
                     >
                       <i className="bi bi-pencil me-1"></i>Edit
                     </button>
-                    <button
+                    {/* <button
                       className="btn btn-outline-danger"
                       onClick={() => handleDeleteFee(fee.id, "tuition")}
                     >
                       <i className="bi bi-trash"></i>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
@@ -292,7 +303,7 @@ export default function FeesManagement() {
       )}
 
       {/* Custom Fees Tab */}
-      {activeTab === "custom" && (
+      {/* activeTab === "custom" && (
         <div className="card border-0 shadow-sm">
           <div className="card-header bg-white border-bottom">
             <h5 className="mb-0">Custom & Add-on Fees</h5>
@@ -363,7 +374,8 @@ export default function FeesManagement() {
             </div>
           </div>
         </div>
-      )}
+      ) */}
+
       {/* Student Balances Tab */}
       {activeTab === "balances" && (
         <div className="card border-0 shadow-sm">
