@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StatsCard from "../components/StatsCard";
 export default function FeesManagement() {
   const [activeTab, setActiveTab] = useState("tuition");
@@ -11,25 +11,7 @@ export default function FeesManagement() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Sample data based on Abraham and Aysak School structure
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "Juan Dela Cruz",
-      gradeLevel: "Kindergarten",
-      academicYear: "2024-2025",
-      paymentPlan: "Installment", // or 'Cash'
-      downPayment: 3000,
-      paymentsMade: 5000, // total payment made so far
-    },
-    {
-      id: 2,
-      name: "Maria Santos",
-      gradeLevel: "Elementary",
-      academicYear: "2024-2025",
-      paymentPlan: "Cash",
-      paymentsMade: 10000,
-    },
-  ]);
+  const [students, setStudents] = useState([]);
   const [tuitionFees, setTuitionFees] = useState([
     {
       id: 1,
@@ -96,7 +78,21 @@ export default function FeesManagement() {
   const getBasicStudent = async () => {
     setIsLoading(true);
     try {
-    } catch (error) {}
+      const res = await fetch("http://localhost:5000/api/tuition", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+      setStudents(data || []);
+    } catch (error) {
+      console.log("Fetch Error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditFee = (fee, type) => {
@@ -120,7 +116,9 @@ export default function FeesManagement() {
       currency: "PHP",
     }).format(amount);
   };
-
+  useEffect(() => {
+    getBasicStudent();
+  }, []);
   return (
     <div className="container-fluid p-4">
       {/* Header */}
