@@ -119,6 +119,10 @@ export default function FeesManagement() {
   useEffect(() => {
     getBasicStudent();
   }, []);
+
+  useEffect(() => {
+    console.log(student);
+  }, []);
   return (
     <div className="container-fluid p-4">
       {/* Header */}
@@ -419,7 +423,7 @@ export default function FeesManagement() {
                     return (
                       <tr key={student.id}>
                         <td>{student.name}</td>
-                        <td>{student.gradeLevel}</td>
+                        <td>{student.level}</td>
                         <td>{student.academicYear}</td>
                         <td>
                           <span

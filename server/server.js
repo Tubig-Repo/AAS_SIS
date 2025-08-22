@@ -5,9 +5,11 @@ const authRoutes = require("./authRoutes");
 const adminRoutes = require("./adminRoutes");
 const studentRoutes = require("./studentRoute");
 const tuitionRoutes = require("./tuitionFeeRoute");
+const authentication = require("./authenticationToken");
 const app = express();
 const db = require("./db");
 app.use(cors());
+app.use(authentication);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Mount Routes
