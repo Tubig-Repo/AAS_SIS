@@ -45,6 +45,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
 
   const {
     student_id,
+    academic_year_id,
     LRN,
     first_name,
     middle_name,
@@ -67,6 +68,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
   // Add this detailed logging
   console.log("Extracted values:", {
     student_id,
+    academic_year_id,
     LRN,
     first_name,
     middle_name,
@@ -88,12 +90,13 @@ router.post("/", upload.single("photo"), async (req, res) => {
   try {
     const sql = `
   INSERT INTO students 
-    (student_id, LRN, first_name, middle_name, last_name, birthdate, gender, level, section,
+    (student_id, academic_year_id, LRN, first_name, middle_name, last_name, birthdate, gender, level, section,
      guardian_name, guardian_contact_number, guardian_email, address, date_enrolled, status, payment_plan, photo)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  VALUES (?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const values = [
       student_id,
+      academic_year_id,
       LRN,
       first_name,
       middle_name,
@@ -135,6 +138,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
   console.log(req.body);
   const {
     LRN,
+    academic_year_id,
     first_name,
     middle_name,
     last_name,
@@ -156,6 +160,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
     const sql = `
       UPDATE students SET
         LRN = ?,
+        academic_year_id = ?,
         first_name = ?,
         middle_name = ?,
         last_name = ?,
@@ -175,6 +180,7 @@ router.put("/:id", upload.single("photo"), async (req, res) => {
 
     const values = [
       LRN,
+      academic_year_id,
       first_name,
       middle_name,
       last_name,

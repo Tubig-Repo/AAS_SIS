@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import StatsCard from "../components/StatsCard";
 export default function FeesManagement() {
   const [activeTab, setActiveTab] = useState("tuition");
@@ -12,79 +12,72 @@ export default function FeesManagement() {
 
   // Sample data based on Abraham and Aysak School structure
   const [students, setStudents] = useState([]);
-  const [tuitionFees, setTuitionFees] = useState([
-    {
-      id: 1,
-      level: "Kinder",
-      gradeLevel: "Kindergarten",
-      cashFee: 20900,
-      installmentFee: 22990, // 10% increase
-      installmentRate: 10,
-      downPaymentOptions: [
-        { amount: 3000, remaining: 19990, monthly: 1999 },
-        { amount: 5000, remaining: 17990, monthly: 1799 },
-        { amount: 7000, remaining: 15990, monthly: 1599 },
-      ],
-      academicYear: "2024-2025",
-      status: "Active",
-    },
-    {
-      id: 2,
-      level: "Elementary",
-      gradeLevel: "Elementary",
-      cashFee: 22000,
-      installmentFee: 24200, // 10% increase
-      installmentRate: 10,
-      downPaymentOptions: [
-        { amount: 3000, remaining: 21200, monthly: 2120 },
-        { amount: 5000, remaining: 19200, monthly: 1920 },
-        { amount: 7000, remaining: 17200, monthly: 1720 },
-      ],
-      academicYear: "2024-2025",
-      status: "Active",
-    },
-  ]);
+  const [tuitionFees, setTuitionFees] = useState([]);
+  // const [tuitionFees, setTuitionFees] = useState([
+  //   {
+  //     id: 1,
+  //     level: "Kinder",
+  //     gradeLevel: "Kindergarten",
+  //     cashFee: 20900,
+  //     installmentRate: 10,
+  //     downPaymentOptions: [
+  //       { amount: 3000, remaining: 19990, monthly: 1999 },
+  //       { amount: 5000, remaining: 17990, monthly: 1799 },
+  //       { amount: 7000, remaining: 15990, monthly: 1599 },
+  //     ],
+  //     academicYear: "2024-2025",
+  //     status: "Active",
+  //   },
+  //   {
+  //     id: 2,
+  //     level: "Elementary",
+  //     gradeLevel: "Elementary",
+  //     cashFee: 22000,
+  //     installmentRate: 10,
+  //     downPaymentOptions: [
+  //       { amount: 3000, remaining: 21200, monthly: 2120 },
+  //       { amount: 5000, remaining: 19200, monthly: 1920 },
+  //       { amount: 7000, remaining: 17200, monthly: 1720 },
+  //     ],
+  //     academicYear: "2024-2025",
+  //     status: "Active",
+  //   },
+  // ]);
+  const getTuitionFee = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/tuition/tuition-rate",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  const [customFees, setCustomFees] = useState([
-    {
-      id: 1,
-      feeName: "Enrollment Fee",
-      feeType: "Required",
-      amount: 2000,
-      applicableLevel: "All Levels",
-      description: "Minimum enrollment fee option",
-      status: "Active",
-    },
-    {
-      id: 2,
-      feeName: "Books and Materials",
-      feeType: "Optional",
-      amount: 3000,
-      applicableLevel: "All Levels",
-      description: "Textbooks and learning materials",
-      status: "Active",
-    },
-    {
-      id: 3,
-      feeName: "Uniform Package",
-      feeType: "Optional",
-      amount: 2500,
-      applicableLevel: "All Levels",
-      description: "Complete school uniform set",
-      status: "Active",
-    },
-  ]);
-
+      const data = await res.json();
+      setTuitionFees(data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const getBasicStudent = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/tuition", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/tuition/student-fees",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await res.json();
       setStudents(data || []);
@@ -119,9 +112,8 @@ export default function FeesManagement() {
   useEffect(() => {
     getBasicStudent();
   }, []);
-
   useEffect(() => {
-    console.log(student);
+    getTuitionFee();
   }, []);
   return (
     <div className="container-fluid p-4">
@@ -256,7 +248,7 @@ export default function FeesManagement() {
                       </div>
                       <div className="card-body">
                         <div className="row">
-                          {fee.downPaymentOptions.map((option, index) => (
+                          {/* {fee.downPaymentOptions.map((option, index) => (
                             <div key={index} className="col-md-4 mb-3">
                               <div className="border rounded p-3 h-100">
                                 <div className="text-center">
@@ -285,13 +277,13 @@ export default function FeesManagement() {
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          ))} */}
                         </div>
                         <div className="alert alert-info mt-3 mb-0">
                           <i className="bi bi-info-circle me-2"></i>
                           <small>
-                            <strong>Note:</strong> You can also enroll for as
-                            low as ₱2,000.00
+                            <strong>Note:</strong> Student's can also enroll for
+                            as low as ₱2,000.00
                           </small>
                         </div>
                       </div>
@@ -303,81 +295,6 @@ export default function FeesManagement() {
           </div>
         </div>
       )}
-
-      {/* Custom Fees Tab */}
-      {/* activeTab === "custom" && (
-        <div className="card border-0 shadow-sm">
-          <div className="card-header bg-white border-bottom">
-            <h5 className="mb-0">Custom & Add-on Fees</h5>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-hover mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th>Fee Name</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Applicable Level</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {customFees.map((fee) => (
-                    <tr key={fee.id}>
-                      <td className="fw-medium">{fee.feeName}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            fee.feeType === "Required" ? "bg-danger" : "bg-info"
-                          }`}
-                        >
-                          {fee.feeType}
-                        </span>
-                      </td>
-                      <td className="fw-bold">{formatCurrency(fee.amount)}</td>
-                      <td>{fee.applicableLevel}</td>
-                      <td>
-                        <small className="text-muted">{fee.description}</small>
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            fee.status === "Active"
-                              ? "bg-success"
-                              : "bg-secondary"
-                          }`}
-                        >
-                          {fee.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="btn-group btn-group-sm">
-                          <button
-                            className="btn btn-outline-primary"
-                            onClick={() => handleEditFee(fee, "custom")}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </button>
-                          <button
-                            className="btn btn-outline-danger"
-                            onClick={() => handleDeleteFee(fee.id, "custom")}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      ) */}
-
       {/* Student Balances Tab */}
       {activeTab === "balances" && (
         <div className="card border-0 shadow-sm">
@@ -404,40 +321,54 @@ export default function FeesManagement() {
                 </thead>
                 <tbody>
                   {students.map((student) => {
+                    // find matching fee by level (mapped) and academic_year_id
+                    console.log(tuitionFees);
+                    console.log(student);
                     const matchedFee = tuitionFees.find(
                       (fee) =>
-                        fee.gradeLevel === student.gradeLevel &&
-                        fee.academicYear === student.academicYear
+                        // match kinder
+                        ((student.level === "Kindergarten" &&
+                          fee.level === "Kinder") ||
+                          // match any grade as Elementary
+                          (student.level.startsWith("Grade") &&
+                            fee.level === "Elementary")) &&
+                        fee.academic_year_id === student.academic_year_id
                     );
 
                     let totalFee = 0;
                     if (matchedFee) {
-                      totalFee =
-                        student.paymentPlan === "Cash"
-                          ? matchedFee.cashFee
-                          : matchedFee.installmentFee;
+                      if (student.payment_plan === "Fully Paid") {
+                        // ✅ Fully paid → no additional charges
+                        totalFee = 0;
+                      } else if (student.payment_plan === "Installment") {
+                        // ✅ Installment → add 10% on top of cash fee
+                        totalFee = matchedFee.cash_fee * 1.1;
+                        console.log(totalFee);
+                      }
                     }
-
-                    const balance = totalFee - student.paymentsMade;
+                    const balance = totalFee - student.payments_made;
 
                     return (
                       <tr key={student.id}>
-                        <td>{student.name}</td>
+                        <td>
+                          {student.first_name} {student.middle_name}{" "}
+                          {student.last_name}
+                        </td>
                         <td>{student.level}</td>
-                        <td>{student.academicYear}</td>
+                        <td>{student.academic_year}</td>
                         <td>
                           <span
                             className={`badge ${
-                              student.paymentPlan === "Cash"
+                              student.payment_plan === "Installment"
                                 ? "bg-success"
                                 : "bg-info"
                             }`}
                           >
-                            {student.paymentPlan}
+                            {student.payment_plan}
                           </span>
                         </td>
                         <td>{formatCurrency(totalFee)}</td>
-                        <td>{formatCurrency(student.paymentsMade)}</td>
+                        <td>{formatCurrency(student.payments_made)}</td>
                         <td
                           className={
                             balance > 0

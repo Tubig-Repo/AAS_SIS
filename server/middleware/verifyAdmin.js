@@ -11,7 +11,6 @@ function verifyAdmin(req, res, next) {
     if (user.role !== "admin") {
       return res.status(403).json({ message: "Admins only" });
     }
-
     req.user = user; // Attach user info to the request
     next();
   });

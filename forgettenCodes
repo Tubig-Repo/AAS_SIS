@@ -1,0 +1,108 @@
+    {/* Custom Fees Tab */}
+      {/* activeTab === "custom" && (
+        <div className="card border-0 shadow-sm">
+          <div className="card-header bg-white border-bottom">
+            <h5 className="mb-0">Custom & Add-on Fees</h5>
+          </div>
+          <div className="card-body p-0">
+            <div className="table-responsive">
+              <table className="table table-hover mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Fee Name</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Applicable Level</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customFees.map((fee) => (
+                    <tr key={fee.id}>
+                      <td className="fw-medium">{fee.feeName}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            fee.feeType === "Required" ? "bg-danger" : "bg-info"
+                          }`}
+                        >
+                          {fee.feeType}
+                        </span>
+                      </td>
+                      <td className="fw-bold">{formatCurrency(fee.amount)}</td>
+                      <td>{fee.applicableLevel}</td>
+                      <td>
+                        <small className="text-muted">{fee.description}</small>
+                      </td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            fee.status === "Active"
+                              ? "bg-success"
+                              : "bg-secondary"
+                          }`}
+                        >
+                          {fee.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="btn-group btn-group-sm">
+                          <button
+                            className="btn btn-outline-primary"
+                            onClick={() => handleEditFee(fee, "custom")}
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </button>
+                          <button
+                            className="btn btn-outline-danger"
+                            onClick={() => handleDeleteFee(fee.id, "custom")}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) */}
+
+
+
+  Custom Fees 
+
+
+   // const [customFees, setCustomFees] = useState([
+  //   {
+  //     id: 1,
+  //     feeName: "Enrollment Fee",
+  //     feeType: "Required",
+  //     amount: 2000,
+  //     applicableLevel: "All Levels",
+  //     description: "Minimum enrollment fee option",
+  //     status: "Active",
+  //   },
+  //   {
+  //     id: 2,
+  //     feeName: "Books and Materials",
+  //     feeType: "Optional",
+  //     amount: 3000,
+  //     applicableLevel: "All Levels",
+  //     description: "Textbooks and learning materials",
+  //     status: "Active",
+  //   },
+  //   {
+  //     id: 3,
+  //     feeName: "Uniform Package",
+  //     feeType: "Optional",
+  //     amount: 2500,
+  //     applicableLevel: "All Levels",
+  //     description: "Complete school uniform set",
+  //     status: "Active",
+  //   },
+  // ]);

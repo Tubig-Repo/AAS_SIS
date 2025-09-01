@@ -9,7 +9,7 @@ const authentication = require("./authenticationToken");
 const app = express();
 const db = require("./db");
 app.use(cors());
-app.use(authentication);
+// app.use(authentication);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Mount Routes

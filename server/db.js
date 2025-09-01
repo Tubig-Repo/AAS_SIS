@@ -9,6 +9,6 @@ const connection = mysql2.createConnection({
   connectionLimit: 10,
   queueLimit: 0,
   port: 8889,
-});
+}); 
 
 module.exports = connection.promise();

@@ -10,8 +10,12 @@ export default function AddStudentModal({
   studentData = null,
   onEdit,
 }) {
-  const [form, setForm] = useState({
+  const [preview, setPreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [academicYears, setAcademicYears] = useState([]);
+  const initialFormState = {
     student_id: "",
+    academic_year_id: "",
     LRN: "",
     first_name: "",
     middle_name: "",
@@ -20,18 +24,16 @@ export default function AddStudentModal({
     gender: "",
     level: "",
     section: "",
-    guardian_name: "",
-    guardian_contact_number: "",
-    guardian_email: "",
     address: "",
-    date_enrolled: "",
-    status: "",
+    guardian_name: "",
+    guardian_email: "",
+    guardian_contact_number: "",
     photo: null,
+    date_enrolled: "",
+    status: "active", // default active
     payment_plan: "",
-  });
-  const [preview, setPreview] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [academicYears, setAcademicYears] = useState([]);
+  };
+  const [form, setForm] = useState(initialFormState);
   useEffect(() => {
     const fetchAcademicYears = async () => {
       try {
@@ -84,6 +86,7 @@ export default function AddStudentModal({
       // Append fields in a specific order to ensure consistency
       const fieldOrder = [
         "student_id",
+        "academic_year_id",
         "LRN",
         "first_name",
         "middle_name",
@@ -133,27 +136,9 @@ export default function AddStudentModal({
       setIsLoading(false);
     }
   };
-
+  // Clear only the fields
   const clearFields = () => {
-    setForm({
-      student_id: "",
-      LRN: "",
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      birthdate: "",
-      gender: "",
-      level: "",
-      section: "",
-      address: "",
-      guardian_name: "",
-      guardian_email: "",
-      guardian_contact_number: "",
-      photo: null,
-      date_enrolled: "",
-      status: "",
-      payment_plan: "",
-    });
+    setForm(initialFormState);
     setPreview(null);
     onClose();
   };
@@ -178,25 +163,7 @@ export default function AddStudentModal({
         setPreview(null);
       }
     } else if (mode === "add") {
-      setForm({
-        student_id: "",
-        LRN: "",
-        first_name: "",
-        middle_name: "",
-        last_name: "",
-        birthdate: "",
-        gender: "",
-        level: "",
-        section: "",
-        address: "",
-        guardian_name: "",
-        guardian_email: "",
-        guardian_contact_number: "",
-        photo: null,
-        date_enrolled: "",
-        status: "active", // Changed from "Active" to "active" to match select options
-        payment_plan: "",
-      });
+      setForm(initialFormState);
       setPreview(null);
     }
   }, [studentData, mode, show]);
@@ -258,7 +225,7 @@ export default function AddStudentModal({
                 ["first_name", "First Name"],
                 ["middle_name", "Middle Name"],
                 ["last_name", "Last Name"],
-                ["academic_years", "Academic Year"],
+                ["academic_year_id", "Academic Year"],
                 ["birthdate", "Birthdate", "date"],
                 ["date_enrolled", "Date Enrolled", "date"],
                 ["gender", "Gender"],
@@ -278,7 +245,7 @@ export default function AddStudentModal({
                   name === "level" ||
                   name === "status" ||
                   name === "payment_plan" ||
-                  name === "academic_years" ? (
+                  name === "academic_year_id" ? (
                     <select
                       className="form-select"
                       name={name}
@@ -318,7 +285,7 @@ export default function AddStudentModal({
                         </>
                       )}
 
-                      {name === "academic_years" &&
+                      {name === "academic_year_id" &&
                         academicYears.map((year) => (
                           <option key={year.id} value={year.id}>
                             {year.year_label}
