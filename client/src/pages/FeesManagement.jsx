@@ -1,5 +1,6 @@
 import { use, useEffect, useState } from "react";
 import StatsCard from "../components/StatsCard";
+import StudentPaymentsModal from "../components/StudentPaymentsModal";
 export default function FeesManagement() {
   const [activeTab, setActiveTab] = useState("tuition");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -382,6 +383,7 @@ export default function FeesManagement() {
                           <button className="btn btn-lg text-warning">
                             <i className="bi bi-pencil-square"></i>
                           </button>
+                          <StudentPaymentsModal />
                         </td>
                       </tr>
                     );
