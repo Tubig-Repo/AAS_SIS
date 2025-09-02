@@ -378,6 +378,11 @@ export default function FeesManagement() {
                         >
                           {formatCurrency(balance)}
                         </td>
+                        <td>
+                          <button className="btn btn-lg text-warning">
+                            <i className="bi bi-pencil-square"></i>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}

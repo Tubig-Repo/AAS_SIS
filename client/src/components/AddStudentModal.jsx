@@ -33,6 +33,9 @@ export default function AddStudentModal({
     status: "active", // default active
     payment_plan: "",
   };
+
+
+  
   const [form, setForm] = useState(initialFormState);
   useEffect(() => {
     const fetchAcademicYears = async () => {
